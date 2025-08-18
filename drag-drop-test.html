@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Drag & Drop Duplication Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .task { 
+            padding: 10px; 
+            margin: 5px 0; 
+            border: 1px solid #ccc; 
+            border-radius: 5px;
+            cursor: move;
+            background: white;
+        }
+        .task.dragging { opacity: 0.5; }
+        .container { 
+            padding: 20px; 
+            border: 2px dashed #ddd; 
+            min-height: 200px;
+        }
+        .log { 
+            background: #f5f5f5; 
+            padding: 10px; 
+            margin: 20px 0; 
+            height: 200px; 
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .status { 
+            background: #e7f3ff; 
+            padding: 10px; 
+            margin: 10px 0; 
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>HibiList Drag & Drop Duplication Test</h1>
+    <p>Testing the fixed drag & drop logic to ensure no duplication occurs</p>
+    
+    <div class="status" id="status">
+        Array Length: <span id="arrayLength">3</span> | 
+        Expected: 3 tasks always
+    </div>
+    
+    <div class="log" id="log">
+        <!-- Debug log will appear here -->
+    </div>
+    
+    <div class="container" id="container">
+        <div class="task" draggable="true" data-id="task-1" data-index="0">Task 1</div>
+        <div class="task" draggable="true" data-id="task-2" data-index="1">Task 2</div>
+        <div class="task" draggable="true" data-id="task-3" data-index="2">Task 3</div>
+    </div>
+
+    <script>
+        // Debug logging
+        function log(message) {
+            const logDiv = document.getElementById('log');
+            logDiv.innerHTML += new Date().toTimeString().substr(0,8) + ': ' + message + '\n';
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        function updateStatus() {
+            document.getElementById('arrayLength').textContent = tasks.length;
+            if (tasks.length !== 3) {
+                document.getElementById('status').style.background = '#ffebee';
+                log('⚠️ DUPLICATION DETECTED! Array length is ' + tasks.length);
+            } else {
+                document.getElementById('status').style.background = '#e8f5e8';  
+            }
+        }
+
+        // Test array to simulate React state - SHOULD ALWAYS BE LENGTH 3
+        let tasks = [
+            { id: 'task-1', name: 'Task 1' },
+            { id: 'task-2', name: 'Task 2' }, 
+            { id: 'task-3', name: 'Task 3' }
+        ];
+        
+        // Drag state
+        let draggedElement = null;
+        let draggedIndex = -1;
+
+        // Simulate the fixed createDragDropHandlers logic
+        function createDragDropHandlers(items, onReorder, getKey) {
+            return {
+                dragHandlers: {
+                    onDragStart: (e, item, index) => {
+                        draggedElement = item;
+                        draggedIndex = index;
+                        log(`Drag start: ${item.name} at index ${index}`);
+                    },
+                    onDragEnd: (e) => {
+                        log(`Drag end: ${draggedElement ? draggedElement.name : 'unknown'}`);
+                        draggedElement = null;
+                        draggedIndex = -1;
+                    }
+                },
+                dropZoneHandlers: {
+                    onDragOver: (e) => {
+                        e.preventDefault();
+                        e.dataTransfer.dropEffect = 'move';
+                    },
+                    onDrop: (e, dropIndex) => {
+                        e.preventDefault();
+                        if (draggedElement && draggedIndex !== -1) {
+                            log(`Drop at index: ${dropIndex}`);
+                            log(`Before reorder - items length: ${items.length}`);
+                            
+                            // Create new array
+                            const newItems = [...items];
+                            
+                            // Remove dragged item
+                            const [draggedItem] = newItems.splice(draggedIndex, 1);
+                            log(`Removed: ${draggedItem.name}`);
+                            
+                            // Insert at new position
+                            const insertIndex = dropIndex > draggedIndex ? dropIndex : dropIndex;
+                            newItems.splice(insertIndex, 0, draggedItem);
+                            log(`Inserted at index: ${insertIndex}`);
+                            log(`After reorder - items length: ${newItems.length}`);
+                            
+                            // Call reorder callback
+                            onReorder(newItems);
+                        }
+                    }
+                }
+            };
+        }
+
+        // Create handlers
+        const handlers = createDragDropHandlers(tasks, (newTasks) => {
+            tasks = newTasks;
+            updateDisplay();
+            updateStatus();
+        }, (task) => task.id);
+
+        // Add event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            const container = document.getElementById('container');
+            
+            // Container handles drag over
+            container.addEventListener('dragover', handlers.dropZoneHandlers.onDragOver);
+            
+            container.addEventListener('dragstart', function(e) {
+                if (e.target.classList.contains('task')) {
+                    const index = parseInt(e.target.getAttribute('data-index'));
+                    const task = tasks[index];
+                    e.target.classList.add('dragging');
+                    handlers.dragHandlers.onDragStart(e, task, index);
+                }
+            });
+
+            container.addEventListener('dragend', function(e) {
+                if (e.target.classList.contains('task')) {
+                    e.target.classList.remove('dragging');
+                    handlers.dragHandlers.onDragEnd(e);
+                }
+            });
+
+            // Individual drop zones
+            container.addEventListener('drop', function(e) {
+                const dropTarget = e.target.closest('.task');
+                if (dropTarget) {
+                    const dropIndex = parseInt(dropTarget.getAttribute('data-index'));
+                    handlers.dropZoneHandlers.onDrop(e, dropIndex);
+                }
+            });
+            
+            updateStatus();
+            log('Test initialized with 3 tasks');
+        });
+
+        function updateDisplay() {
+            const container = document.getElementById('container');
+            container.innerHTML = '';
+            tasks.forEach((task, index) => {
+                const div = document.createElement('div');
+                div.className = 'task';
+                div.draggable = true;
+                div.setAttribute('data-id', task.id);
+                div.setAttribute('data-index', index);
+                div.textContent = task.name;
+                container.appendChild(div);
+            });
+            log('Display updated - showing ' + tasks.length + ' tasks');
+        }
+    </script>
+</body>
+</html>
