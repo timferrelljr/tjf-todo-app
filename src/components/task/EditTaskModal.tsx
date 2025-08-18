@@ -33,11 +33,11 @@ export function EditTaskModal({ task, onClose, onSaved }: EditTaskModalProps) {
   
   const [formData, setFormData] = useState({
     name: task.name,
-    notes: task.notes || '',
+    notes: task.notes || task.description || '',
     category_id: task.category_id,
     priority: task.priority,
     status: task.status,
-    due_date: task.due_date || '',
+    due_date: task.due_date ? new Date(task.due_date).toISOString().split('T')[0] : '',
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
