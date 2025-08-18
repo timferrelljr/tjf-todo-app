@@ -65,6 +65,12 @@ export function useCategories() {
     dispatch({ type: 'SET_ERROR', payload: null });
 
     try {
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+
       // Get max position
       const { data: maxPositionData } = await supabase
         .from('categories')
@@ -76,7 +82,11 @@ export function useCategories() {
 
       const { data, error } = await supabase
         .from('categories')
-        .insert([{ ...categoryData, position: nextPosition }])
+        .insert([{ 
+          ...categoryData, 
+          position: nextPosition,
+          user_id: user.id 
+        }])
         .select()
         .single();
 
