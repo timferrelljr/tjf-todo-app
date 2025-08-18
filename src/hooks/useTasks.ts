@@ -75,6 +75,12 @@ export function useTasks() {
     dispatch({ type: 'SET_ERROR', payload: null });
 
     try {
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+
       // Get max position for the category
       const { data: maxPositionData } = await supabase
         .from('tasks')
@@ -87,7 +93,11 @@ export function useTasks() {
 
       const { data, error } = await supabase
         .from('tasks')
-        .insert([{ ...taskData, position: nextPosition }])
+        .insert([{ 
+          ...taskData, 
+          position: nextPosition,
+          user_id: user.id 
+        }])
         .select()
         .single();
 
