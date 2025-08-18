@@ -118,6 +118,12 @@ export function useTasks() {
     dispatch({ type: 'SET_ERROR', payload: null });
 
     try {
+      // Get current user for security
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+
       const updateData = {
         ...taskData,
         updated_at: new Date().toISOString(),
@@ -129,6 +135,7 @@ export function useTasks() {
         .from('tasks')
         .update(updateData)
         .eq('id', taskData.id)
+        .eq('user_id', user.id)
         .select()
         .single();
 
