@@ -16,7 +16,7 @@ interface TaskViewProps {
 
 export function TaskView({ theme = 'light' }: TaskViewProps) {
   const { categories } = useCategories();
-  const { tasks } = useTasks();
+  const { tasks, updateTask } = useTasks();
   const { dispatch } = useApp();
   const [selectedCategory, setSelectedCategory] = useState<any>(null); // TODO: Fix TypeScript issue
   const [showDetailedForm, setShowDetailedForm] = useState<boolean>(false);
@@ -42,17 +42,18 @@ export function TaskView({ theme = 'light' }: TaskViewProps) {
 
   const handleTaskReorder = async (reorderedTasks: any[]) => {
     if (reorderedTasks.length > 0) {
-      // For "All Tasks" view, assign global positions
-      const tasksWithGlobalPositions = reorderedTasks.map((task, index) => ({
-        ...task,
-        position: index + 1,
-        updated_at: new Date().toISOString(),
-      }));
-
-      // Update all tasks in the store directly
-      dispatch({ type: 'SET_TASKS', payload: tasksWithGlobalPositions });
+      console.log('Reordering tasks:', reorderedTasks.length);
       
-      console.log('Task reorder completed with global positions');
+      // Update each task's position in the database
+      for (let i = 0; i < reorderedTasks.length; i++) {
+        const task = reorderedTasks[i];
+        await updateTask({
+          id: task.id,
+          position: i + 1,
+        });
+      }
+      
+      console.log('Task reorder completed and saved to database');
     }
   };
 

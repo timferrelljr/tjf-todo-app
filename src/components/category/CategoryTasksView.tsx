@@ -16,7 +16,7 @@ interface CategoryTasksViewProps {
 }
 
 export function CategoryTasksView({ category, onBack, theme = 'light' }: CategoryTasksViewProps) {
-  const { getTasksByCategory } = useTasks();
+  const { getTasksByCategory, updateTask } = useTasks();
   const { categories } = useCategories();
   const { dispatch, tasks: allTasks } = useApp();
   const [showTaskForm, setShowTaskForm] = useState(false);
@@ -29,19 +29,18 @@ export function CategoryTasksView({ category, onBack, theme = 'light' }: Categor
 
   const handleTaskReorder = async (reorderedTasks: any[]) => {
     if (reorderedTasks.length > 0) {
-      // Update positions within this category
-      const tasksWithUpdatedPositions = reorderedTasks.map((task, index) => ({
-        ...task,
-        position: index + 1,
-        updated_at: new Date().toISOString(),
-      }));
-
-      // Merge with other categories' tasks
-      const otherTasks = allTasks.filter(task => task.category_id !== category.id);
-      const allUpdatedTasks = [...otherTasks, ...tasksWithUpdatedPositions];
-
-      // Update store directly for instant response
-      dispatch({ type: 'SET_TASKS', payload: allUpdatedTasks });
+      console.log('Reordering tasks in category:', category.name, reorderedTasks.length);
+      
+      // Update each task's position in the database
+      for (let i = 0; i < reorderedTasks.length; i++) {
+        const task = reorderedTasks[i];
+        await updateTask({
+          id: task.id,
+          position: i + 1,
+        });
+      }
+      
+      console.log('Category task reorder completed and saved to database');
     }
   };
 
