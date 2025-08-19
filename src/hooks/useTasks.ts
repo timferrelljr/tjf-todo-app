@@ -178,18 +178,26 @@ export function useTasks() {
     dispatch({ type: 'SET_ERROR', payload: null });
 
     try {
-      // Update positions in database
-      const updates = reorderedTasks.map((task, index) => ({
-        id: task.id,
-        position: index + 1,
-        updated_at: new Date().toISOString(),
-      }));
+      // Get current user for security
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
 
-      const { error } = await supabase
-        .from('tasks')
-        .upsert(updates);
+      // Update each task individually with user_id check for security
+      for (let i = 0; i < reorderedTasks.length; i++) {
+        const task = reorderedTasks[i];
+        const { error } = await supabase
+          .from('tasks')
+          .update({ 
+            position: i + 1,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', task.id)
+          .eq('user_id', user.id);
 
-      if (error) throw error;
+        if (error) throw error;
+      }
 
       // Update local state
       const updatedTasks = reorderedTasks.map((task, index) => ({
