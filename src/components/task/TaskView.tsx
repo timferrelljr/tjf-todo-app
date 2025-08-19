@@ -42,18 +42,30 @@ export function TaskView({ theme = 'light' }: TaskViewProps) {
 
   const handleTaskReorder = async (reorderedTasks: any[]) => {
     if (reorderedTasks.length > 0) {
-      console.log('Reordering tasks:', reorderedTasks.length);
+      console.log('🔄 Starting task reorder, count:', reorderedTasks.length);
       
-      // Update each task's position in the database
-      for (let i = 0; i < reorderedTasks.length; i++) {
-        const task = reorderedTasks[i];
-        await updateTask({
-          id: task.id,
-          position: i + 1,
-        });
+      try {
+        // Update each task's position in the database
+        for (let i = 0; i < reorderedTasks.length; i++) {
+          const task = reorderedTasks[i];
+          console.log(`📝 Updating task ${task.name} to position ${i + 1}`);
+          
+          const result = await updateTask({
+            id: task.id,
+            position: i + 1,
+          });
+          
+          if (result.error) {
+            console.error('❌ Failed to update task:', task.name, result.error);
+          } else {
+            console.log('✅ Successfully updated task:', task.name);
+          }
+        }
+        
+        console.log('🎉 Task reorder completed');
+      } catch (error) {
+        console.error('💥 Task reorder failed:', error);
       }
-      
-      console.log('Task reorder completed and saved to database');
     }
   };
 
