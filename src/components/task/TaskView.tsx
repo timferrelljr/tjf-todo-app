@@ -16,7 +16,7 @@ interface TaskViewProps {
 
 export function TaskView({ theme = 'light' }: TaskViewProps) {
   const { categories } = useCategories();
-  const { tasks, reorderTasks } = useTasks();
+  const { tasks } = useTasks();
   const [selectedCategory, setSelectedCategory] = useState<any>(null); // TODO: Fix TypeScript issue
   const [showDetailedForm, setShowDetailedForm] = useState<boolean>(false);
   const [showAllTasks, setShowAllTasks] = useState<boolean>(false);

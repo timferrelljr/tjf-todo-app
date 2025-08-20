@@ -17,7 +17,7 @@ interface CategoryTasksViewProps {
 }
 
 export function CategoryTasksView({ category, onBack, theme = 'light' }: CategoryTasksViewProps) {
-  const { getTasksByCategory, reorderTasks } = useTasks();
+  const { getTasksByCategory } = useTasks();
   const { categories } = useCategories();
   const { tasks: allTasks } = useApp();
   const [showTaskForm, setShowTaskForm] = useState(false);
