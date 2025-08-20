@@ -4,6 +4,7 @@ import { useAuth } from './hooks/useAuth';
 import { Dashboard } from './views/Dashboard';
 import { AuthView } from './views/AuthView';
 import { resetMockData } from './lib/mockData';
+import { isMockMode } from './lib/config';
 
 function AppContent() {
   const { user, loading } = useAuth();
@@ -24,8 +25,13 @@ function AppContent() {
 
 function App() {
   useEffect(() => {
-    // Reset mock data on app start to clear any corrupted data
-    resetMockData();
+    // Only reset mock data if we're actually in mock mode
+    if (isMockMode()) {
+      console.log('🔧 App is in mock mode, resetting mock data');
+      resetMockData();
+    } else {
+      console.log('🚀 App is in production mode, skipping mock data reset');
+    }
   }, []);
 
   return (

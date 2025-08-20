@@ -130,11 +130,13 @@ export function useCategories() {
   }, [dispatch]);
 
   const deleteCategory = useCallback(async (categoryId: string) => {
+    console.log('🗑️ Attempting to delete category:', categoryId);
     setLoading(true);
     dispatch({ type: 'SET_ERROR', payload: null });
 
     try {
       // Delete all tasks in this category first
+      console.log('🗑️ Deleting tasks in category:', categoryId);
       const { error: tasksError } = await supabase
         .from('tasks')
         .delete()
@@ -143,6 +145,7 @@ export function useCategories() {
       if (tasksError) throw tasksError;
 
       // Then delete the category
+      console.log('🗑️ Deleting category from database:', categoryId);
       const { error: categoryError } = await supabase
         .from('categories')
         .delete()
@@ -150,6 +153,7 @@ export function useCategories() {
 
       if (categoryError) throw categoryError;
 
+      console.log('✅ Category deleted successfully:', categoryId);
       dispatch({ type: 'DELETE_CATEGORY', payload: categoryId });
       
       // Also update tasks in the store to reflect deletions
