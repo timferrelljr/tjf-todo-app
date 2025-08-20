@@ -3,6 +3,7 @@ import type { Category } from '../../lib/types';
 import { useTasks } from '../../hooks/useTasks';
 import { useCategories } from '../../hooks/useCategories';
 import { useApp } from '../../stores/AppContext';
+import { supabase } from '../../lib/supabase';
 import { TaskList } from '../task/TaskList';
 import { TaskForm } from '../task/TaskForm';
 import { Card } from '../ui/Card';
@@ -29,14 +30,30 @@ export function CategoryTasksView({ category, onBack, theme = 'light' }: Categor
 
   const handleTaskReorder = async (reorderedTasks: any[]) => {
     if (reorderedTasks.length > 0) {
-      console.log('🔄 Optimized reorder for category:', category.name, reorderedTasks.length);
+      console.log('🔄 Reorder for category:', category.name, reorderedTasks.length);
       
       try {
-        // Use the optimized batch reorderTasks function
-        await reorderTasks(category.id, reorderedTasks);
-        console.log('🎉 Category task reorder completed with batch update');
+        // Update database positions without triggering state updates
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) throw new Error('User not authenticated');
+        
+        for (let i = 0; i < reorderedTasks.length; i++) {
+          const task = reorderedTasks[i];
+          await supabase
+            .from('tasks')
+            .update({ 
+              position: i + 1,
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', task.id)
+            .eq('user_id', user.id);
+        }
+        
+        console.log('🎉 Category task positions saved to database');
       } catch (error) {
         console.error('💥 Category task reorder failed:', error);
+        // On error, refetch to restore correct state
+        window.location.reload();
       }
     }
   };

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useCategories } from '../../hooks/useCategories';
 import { useTasks } from '../../hooks/useTasks';
+import { supabase } from '../../lib/supabase';
 import { DraggableCategoryGrid } from '../category/DraggableCategoryGrid';
 import { CategoryTasksView } from '../category/CategoryTasksView';
 import { AddTaskInput } from './AddTaskInput';
@@ -40,14 +41,31 @@ export function TaskView({ theme = 'light' }: TaskViewProps) {
 
   const handleTaskReorder = async (reorderedTasks: any[]) => {
     if (reorderedTasks.length > 0) {
-      console.log('🔄 Starting optimized task reorder, count:', reorderedTasks.length);
+      console.log('🔄 Starting task reorder, count:', reorderedTasks.length);
       
       try {
-        // Use the optimized batch reorderTasks function
-        await reorderTasks('all', reorderedTasks);
-        console.log('🎉 Task reorder completed with batch update');
+        // Update each task's position in the database silently (no state updates)
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) throw new Error('User not authenticated');
+        
+        // Update database positions without triggering state updates
+        for (let i = 0; i < reorderedTasks.length; i++) {
+          const task = reorderedTasks[i];
+          await supabase
+            .from('tasks')
+            .update({ 
+              position: i + 1,
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', task.id)
+            .eq('user_id', user.id);
+        }
+        
+        console.log('🎉 Task positions saved to database');
       } catch (error) {
         console.error('💥 Task reorder failed:', error);
+        // On error, refetch to restore correct state
+        window.location.reload();
       }
     }
   };
