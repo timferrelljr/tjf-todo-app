@@ -138,7 +138,7 @@ function dataReducer(
       return {
         ...data,
         tasks: data.tasks.map(task => {
-          if (task.category_id === action.payload.categoryId) {
+          if (action.payload.categoryId === 'all' || task.category_id === action.payload.categoryId) {
             const reorderedTask = action.payload.tasks.find(t => t.id === task.id);
             return reorderedTask || task;
           }
