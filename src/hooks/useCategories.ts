@@ -38,6 +38,25 @@ export function useCategories() {
   const { categories, dispatch } = useApp();
   const [loading, setLoading] = useState(false);
 
+  // TEMPORARY: One-time cleanup function to remove default categories
+  const cleanupDefaultCategories = useCallback(async () => {
+    console.log('🧹 Cleaning up default Work/Home categories from database...');
+    try {
+      const { error } = await supabase
+        .from('categories')
+        .delete()
+        .in('name', ['Work', 'Personal', 'Home']);
+      
+      if (error) {
+        console.error('❌ Failed to cleanup default categories:', error);
+      } else {
+        console.log('✅ Default categories cleaned up successfully');
+      }
+    } catch (error) {
+      console.error('❌ Cleanup failed:', error);
+    }
+  }, []);
+
   const fetchCategories = useCallback(async () => {
     console.log('🔍 fetchCategories called in production mode');
     setLoading(true);
@@ -50,6 +69,23 @@ export function useCategories() {
         .order('position', { ascending: true });
       
       console.log('📊 Categories fetched from database:', data);
+      
+      // TEMPORARY: Check if we need to cleanup default categories
+      const hasDefaultCategories = data?.some(cat => ['Work', 'Personal', 'Home'].includes(cat.name));
+      if (hasDefaultCategories) {
+        console.log('🚨 Found default categories, triggering cleanup...');
+        await cleanupDefaultCategories();
+        // Refetch after cleanup
+        const { data: cleanData, error: cleanError } = await supabase
+          .from('categories')
+          .select('*')
+          .order('position', { ascending: true });
+        
+        if (cleanError) throw cleanError;
+        console.log('📊 Categories after cleanup:', cleanData);
+        dispatch({ type: 'SET_CATEGORIES', payload: cleanData || [] });
+        return { error: null };
+      }
 
       if (error) throw error;
       dispatch({ type: 'SET_CATEGORIES', payload: data || [] });
