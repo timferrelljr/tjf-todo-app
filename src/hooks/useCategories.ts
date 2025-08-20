@@ -42,6 +42,15 @@ export function useCategories() {
   const cleanupDefaultCategories = useCallback(async () => {
     console.log('🧹 Cleaning up default Work/Home categories from database...');
     try {
+      // Get current user for authentication
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      if (userError || !user) {
+        console.error('❌ User not authenticated for cleanup:', userError);
+        return;
+      }
+
+      console.log('👤 Current user ID:', user.id);
+
       // First, let's see what categories we're trying to delete
       const { data: defaultCats, error: selectError } = await supabase
         .from('categories')
@@ -60,18 +69,36 @@ export function useCategories() {
         return;
       }
 
-      // Try to delete them
-      const { data: deleteResult, error: deleteError } = await supabase
-        .from('categories')
-        .delete()
-        .in('name', ['Work', 'Personal', 'Home']);
-      
-      console.log('🗑️ Delete result:', deleteResult);
-      
-      if (deleteError) {
-        console.error('❌ Failed to cleanup default categories:', deleteError);
-      } else {
-        console.log('✅ Default categories delete query executed successfully');
+      // Delete each category individually with proper user authentication
+      for (const cat of defaultCats) {
+        console.log(`🗑️ Deleting category: ${cat.name} (ID: ${cat.id}, user: ${cat.user_id})`);
+        
+        // First delete all tasks in this category
+        const { error: tasksError } = await supabase
+          .from('tasks')
+          .delete()
+          .eq('category_id', cat.id)
+          .eq('user_id', user.id);
+
+        if (tasksError) {
+          console.error(`❌ Failed to delete tasks for category ${cat.name}:`, tasksError);
+          continue;
+        }
+
+        // Then delete the category
+        const { data: deleteResult, error: deleteError } = await supabase
+          .from('categories')
+          .delete()
+          .eq('id', cat.id)
+          .eq('user_id', user.id);
+        
+        console.log(`🗑️ Delete result for ${cat.name}:`, deleteResult);
+        
+        if (deleteError) {
+          console.error(`❌ Failed to delete category ${cat.name}:`, deleteError);
+        } else {
+          console.log(`✅ Category ${cat.name} deleted successfully`);
+        }
       }
     } catch (error) {
       console.error('❌ Cleanup failed:', error);
