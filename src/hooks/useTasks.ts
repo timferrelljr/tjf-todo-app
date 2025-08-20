@@ -32,8 +32,15 @@ interface CreateTaskData {
   due_date?: string;
 }
 
-interface UpdateTaskData extends Partial<CreateTaskData> {
+interface UpdateTaskData {
   id: string;
+  name?: string;
+  notes?: string;
+  category_id?: string;
+  priority?: TaskPriority;
+  status?: TaskStatus;
+  due_date?: string;
+  position?: number;
 }
 
 export function useTasks() {
