@@ -11,6 +11,7 @@ import { PremiumFeature, PremiumOnly } from '../components/premium';
 import { PremiumToggle } from '../components/premium/PremiumToggle';
 import { isMockMode } from '../lib/config';
 import { audioSamples } from '../lib/audioSamples';
+import { supabase } from '../lib/supabase';
 
 export function Dashboard() {
   const { state, dispatch } = useApp();
@@ -56,17 +57,33 @@ export function Dashboard() {
 
   const handleTaskReorder = async (reorderedTasks: any[]) => {
     if (reorderedTasks.length > 0) {
-      // For Master view, assign global positions (same as Tasks view)
-      const tasksWithGlobalPositions = reorderedTasks.map((task, index) => ({
-        ...task,
-        position: index + 1,
-        updated_at: new Date().toISOString(),
-      }));
-
-      // Update all tasks in the store directly for instant response
-      dispatch({ type: 'SET_TASKS', payload: tasksWithGlobalPositions });
+      console.log('🔄 Dashboard task reorder, count:', reorderedTasks.length);
       
-      console.log('Task reorder completed with global positions');
+      try {
+        // Update database positions
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) throw new Error('User not authenticated');
+        
+        for (let i = 0; i < reorderedTasks.length; i++) {
+          const task = reorderedTasks[i];
+          await supabase
+            .from('tasks')
+            .update({ 
+              position: i + 1,
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', task.id)
+            .eq('user_id', user.id);
+        }
+        
+        console.log('🎉 Dashboard task positions saved to database');
+        
+        // Refetch tasks to update UI
+        await fetchTasks();
+        
+      } catch (error) {
+        console.error('💥 Dashboard task reorder failed:', error);
+      }
     }
   };
 
