@@ -19,6 +19,7 @@ export interface Task {
   id: string;
   name: string;
   notes?: string;
+  description?: string;
   category_id: string;
   priority: TaskPriority;
   status: TaskStatus;
@@ -46,6 +47,7 @@ export interface Profile {
 export interface CreateTaskData {
   name: string;
   notes?: string;
+  description?: string;
   category_id: string;
   priority: TaskPriority;
   status: TaskStatus;
