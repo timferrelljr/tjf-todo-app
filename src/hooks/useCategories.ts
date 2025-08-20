@@ -42,15 +42,36 @@ export function useCategories() {
   const cleanupDefaultCategories = useCallback(async () => {
     console.log('🧹 Cleaning up default Work/Home categories from database...');
     try {
-      const { error } = await supabase
+      // First, let's see what categories we're trying to delete
+      const { data: defaultCats, error: selectError } = await supabase
+        .from('categories')
+        .select('*')
+        .in('name', ['Work', 'Personal', 'Home']);
+      
+      console.log('🔍 Found these default categories to delete:', defaultCats);
+      
+      if (selectError) {
+        console.error('❌ Failed to query default categories:', selectError);
+        return;
+      }
+
+      if (!defaultCats || defaultCats.length === 0) {
+        console.log('ℹ️ No default categories found to delete');
+        return;
+      }
+
+      // Try to delete them
+      const { data: deleteResult, error: deleteError } = await supabase
         .from('categories')
         .delete()
         .in('name', ['Work', 'Personal', 'Home']);
       
-      if (error) {
-        console.error('❌ Failed to cleanup default categories:', error);
+      console.log('🗑️ Delete result:', deleteResult);
+      
+      if (deleteError) {
+        console.error('❌ Failed to cleanup default categories:', deleteError);
       } else {
-        console.log('✅ Default categories cleaned up successfully');
+        console.log('✅ Default categories delete query executed successfully');
       }
     } catch (error) {
       console.error('❌ Cleanup failed:', error);
