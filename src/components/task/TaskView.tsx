@@ -44,43 +44,10 @@ export function TaskView({ theme = 'light' }: TaskViewProps) {
   const handleTaskReorder = async (reorderedTasks: any[]) => {
     if (reorderedTasks.length > 0) {
       console.log('🔄 TaskView task reorder, count:', reorderedTasks.length);
-      console.log('🔍 First few tasks:', reorderedTasks.slice(0, 3).map(t => ({ id: t.id, name: t.name })));
+      console.log('🔍 TaskList now handles its own optimistic state');
       
-      // For TaskView, we need to be careful about partial task lists (like Recent Tasks showing only 5)
-      // We should update the full task list in the global state, not just the subset being reordered
-      const allTasks = [...tasks];
-      const allActiveTasks = allTasks.filter(t => t.status !== 'Complete');
-      
-      // If we're reordering fewer tasks than total active tasks, it's a "Recent Tasks" reorder
-      const isPartialReorder = reorderedTasks.length < allActiveTasks.length;
-      
-      if (isPartialReorder) {
-        console.log('🔍 Partial reorder detected (Recent Tasks), mapping to full task list');
-        // Map the reordered positions back to the full task list
-        reorderedTasks.forEach((reorderedTask, newIndex) => {
-          const taskIndex = allTasks.findIndex(t => t.id === reorderedTask.id);
-          if (taskIndex !== -1) {
-            allTasks[taskIndex] = {
-              ...allTasks[taskIndex],
-              position: newIndex + 1,
-              updated_at: new Date().toISOString(),
-            };
-          }
-        });
-        
-        console.log('🎯 Updating full task list state');
-        dispatch({ type: 'SET_TASKS', payload: allTasks });
-      } else {
-        console.log('🔍 Full list reorder, updating normally');
-        const tasksWithNewPositions = reorderedTasks.map((task, index) => ({
-          ...task,
-          position: index + 1,
-          updated_at: new Date().toISOString(),
-        }));
-        dispatch({ type: 'SET_TASKS', payload: tasksWithNewPositions });
-      }
-      
-      // Background database sync
+      // TaskList handles optimistic UI updates internally
+      // Just sync to database in background
       setTimeout(async () => {
         try {
           const { data: { user } } = await supabase.auth.getUser();
@@ -101,8 +68,6 @@ export function TaskView({ theme = 'light' }: TaskViewProps) {
           console.log('🎉 TaskView positions synced to database');
         } catch (error) {
           console.error('💥 TaskView database sync failed:', error);
-          // On error, refetch to restore correct state
-          await fetchTasks();
         }
       }, 0);
     }

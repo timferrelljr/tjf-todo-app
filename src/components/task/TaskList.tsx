@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import type { Task } from '../../lib/types';
 import { TaskItem } from './TaskItem';
 import {
@@ -91,6 +92,13 @@ export function TaskList({
   onTaskReorder,
   theme = 'light'
 }: TaskListProps) {
+  // Internal state for optimistic updates
+  const [localTasks, setLocalTasks] = useState(tasks);
+  
+  // Sync local state when props change
+  useEffect(() => {
+    setLocalTasks(tasks);
+  }, [tasks]);
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -106,17 +114,22 @@ export function TaskList({
     const { active, over } = event;
 
     if (active.id !== over?.id && over?.id) {
-      const oldIndex = tasks.findIndex((task) => task.id === active.id);
-      const newIndex = tasks.findIndex((task) => task.id === over?.id);
+      const oldIndex = localTasks.findIndex((task) => task.id === active.id);
+      const newIndex = localTasks.findIndex((task) => task.id === over?.id);
       
       if (oldIndex !== -1 && newIndex !== -1) {
-        const reorderedTasks = arrayMove(tasks, oldIndex, newIndex);
+        const reorderedTasks = arrayMove(localTasks, oldIndex, newIndex);
+        
+        // Update local state immediately for optimistic UI
+        setLocalTasks(reorderedTasks);
+        
+        // Call parent callback for database sync
         onTaskReorder?.(reorderedTasks);
       }
     }
   };
 
-  if (tasks.length === 0) {
+  if (localTasks.length === 0) {
     return (
       <div className={`text-center py-8 transition-colors ${
         theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
@@ -134,11 +147,11 @@ export function TaskList({
       onDragEnd={handleDragEnd}
     >
       <SortableContext 
-        items={tasks.map(t => t.id)}
+        items={localTasks.map(t => t.id)}
         strategy={verticalListSortingStrategy}
       >
         <div className="space-y-2">
-          {tasks.map((task) => (
+          {localTasks.map((task) => (
             <SortableTaskItem
               key={task.id}
               task={task}
