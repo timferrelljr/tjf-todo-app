@@ -195,9 +195,13 @@ export const generateId = () => `mock-${Date.now()}-${Math.random().toString(36)
 export const initializeMockData = () => {
   console.log('Initializing mock data...');
   
-  // Force update categories with new icon format
-  console.log('Updating categories with Lucide icons');
-  localStorage.setItem(MOCK_STORAGE_KEYS.categories, JSON.stringify(mockCategories));
+  // Initialize categories if not present (don't overwrite existing ones)
+  if (!localStorage.getItem(MOCK_STORAGE_KEYS.categories)) {
+    console.log('No categories in localStorage, initializing with mock data');
+    localStorage.setItem(MOCK_STORAGE_KEYS.categories, JSON.stringify(mockCategories));
+  } else {
+    console.log('Categories already exist in localStorage, keeping user customizations');
+  }
   
   // Initialize tasks if not present
   if (!localStorage.getItem(MOCK_STORAGE_KEYS.tasks)) {
