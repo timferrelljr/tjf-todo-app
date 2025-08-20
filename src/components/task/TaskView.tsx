@@ -16,7 +16,7 @@ interface TaskViewProps {
 
 export function TaskView({ theme = 'light' }: TaskViewProps) {
   const { categories } = useCategories();
-  const { tasks } = useTasks();
+  const { tasks, fetchTasks } = useTasks();
   const [selectedCategory, setSelectedCategory] = useState<any>(null); // TODO: Fix TypeScript issue
   const [showDetailedForm, setShowDetailedForm] = useState<boolean>(false);
   const [showAllTasks, setShowAllTasks] = useState<boolean>(false);
@@ -44,11 +44,10 @@ export function TaskView({ theme = 'light' }: TaskViewProps) {
       console.log('🔄 Starting task reorder, count:', reorderedTasks.length);
       
       try {
-        // Update each task's position in the database silently (no state updates)
+        // Update each task's position in the database
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) throw new Error('User not authenticated');
         
-        // Update database positions without triggering state updates
         for (let i = 0; i < reorderedTasks.length; i++) {
           const task = reorderedTasks[i];
           await supabase
@@ -62,10 +61,14 @@ export function TaskView({ theme = 'light' }: TaskViewProps) {
         }
         
         console.log('🎉 Task positions saved to database');
+        
+        // Refetch tasks to update UI with new positions
+        await fetchTasks();
+        
       } catch (error) {
         console.error('💥 Task reorder failed:', error);
         // On error, refetch to restore correct state
-        window.location.reload();
+        await fetchTasks();
       }
     }
   };
