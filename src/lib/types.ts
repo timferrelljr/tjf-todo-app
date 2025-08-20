@@ -54,8 +54,15 @@ export interface CreateTaskData {
   due_date?: string;
 }
 
-export interface UpdateTaskData extends Partial<CreateTaskData> {
+export interface UpdateTaskData {
   id: string;
+  name?: string;
+  notes?: string;
+  description?: string;
+  category_id?: string;
+  priority?: TaskPriority;
+  status?: TaskStatus;
+  due_date?: string;
   position?: number;
 }
 

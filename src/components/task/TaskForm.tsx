@@ -48,7 +48,7 @@ export function TaskForm({ onCancel, onCreated, defaultCategoryId }: TaskFormPro
     const result = await createTask({
       ...formData,
       name: formData.name.trim(),
-      description: formData.notes?.trim() || undefined,
+      notes: formData.notes?.trim() || undefined,
       due_date: formData.due_date || undefined,
     });
 
