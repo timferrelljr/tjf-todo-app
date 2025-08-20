@@ -15,7 +15,7 @@ interface TaskViewProps {
 
 export function TaskView({ theme = 'light' }: TaskViewProps) {
   const { categories } = useCategories();
-  const { tasks, updateTask } = useTasks();
+  const { tasks, updateTask, reorderTasks } = useTasks();
   const [selectedCategory, setSelectedCategory] = useState<any>(null); // TODO: Fix TypeScript issue
   const [showDetailedForm, setShowDetailedForm] = useState<boolean>(false);
   const [showAllTasks, setShowAllTasks] = useState<boolean>(false);
@@ -40,27 +40,12 @@ export function TaskView({ theme = 'light' }: TaskViewProps) {
 
   const handleTaskReorder = async (reorderedTasks: any[]) => {
     if (reorderedTasks.length > 0) {
-      console.log('🔄 Starting task reorder, count:', reorderedTasks.length);
+      console.log('🔄 Starting optimized task reorder, count:', reorderedTasks.length);
       
       try {
-        // Update each task's position in the database
-        for (let i = 0; i < reorderedTasks.length; i++) {
-          const task = reorderedTasks[i];
-          console.log(`📝 Updating task ${task.name} to position ${i + 1}`);
-          
-          const result = await updateTask({
-            id: task.id,
-            position: i + 1,
-          });
-          
-          if (result.error) {
-            console.error('❌ Failed to update task:', task.name, result.error);
-          } else {
-            console.log('✅ Successfully updated task:', task.name);
-          }
-        }
-        
-        console.log('🎉 Task reorder completed');
+        // Use the optimized batch reorderTasks function
+        await reorderTasks('all', reorderedTasks);
+        console.log('🎉 Task reorder completed with batch update');
       } catch (error) {
         console.error('💥 Task reorder failed:', error);
       }

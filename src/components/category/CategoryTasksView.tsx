@@ -16,7 +16,7 @@ interface CategoryTasksViewProps {
 }
 
 export function CategoryTasksView({ category, onBack, theme = 'light' }: CategoryTasksViewProps) {
-  const { getTasksByCategory, updateTask } = useTasks();
+  const { getTasksByCategory, updateTask, reorderTasks } = useTasks();
   const { categories } = useCategories();
   const { tasks: allTasks } = useApp();
   const [showTaskForm, setShowTaskForm] = useState(false);
@@ -29,18 +29,15 @@ export function CategoryTasksView({ category, onBack, theme = 'light' }: Categor
 
   const handleTaskReorder = async (reorderedTasks: any[]) => {
     if (reorderedTasks.length > 0) {
-      console.log('Reordering tasks in category:', category.name, reorderedTasks.length);
+      console.log('🔄 Optimized reorder for category:', category.name, reorderedTasks.length);
       
-      // Update each task's position in the database
-      for (let i = 0; i < reorderedTasks.length; i++) {
-        const task = reorderedTasks[i];
-        await updateTask({
-          id: task.id,
-          position: i + 1,
-        });
+      try {
+        // Use the optimized batch reorderTasks function
+        await reorderTasks(category.id, reorderedTasks);
+        console.log('🎉 Category task reorder completed with batch update');
+      } catch (error) {
+        console.error('💥 Category task reorder failed:', error);
       }
-      
-      console.log('Category task reorder completed and saved to database');
     }
   };
 
