@@ -41,35 +41,34 @@ export function TaskView({ theme = 'light' }: TaskViewProps) {
 
   const handleTaskReorder = async (reorderedTasks: any[]) => {
     if (reorderedTasks.length > 0) {
-      console.log('🔄 Starting task reorder, count:', reorderedTasks.length);
+      console.log('🔄 TaskView task reorder, count:', reorderedTasks.length);
       
-      try {
-        // Update each task's position in the database
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) throw new Error('User not authenticated');
-        
-        for (let i = 0; i < reorderedTasks.length; i++) {
-          const task = reorderedTasks[i];
-          await supabase
-            .from('tasks')
-            .update({ 
-              position: i + 1,
-              updated_at: new Date().toISOString()
-            })
-            .eq('id', task.id)
-            .eq('user_id', user.id);
+      // The drag and drop library already shows optimistic UI updates
+      // Just sync to database in background without blocking UI
+      setTimeout(async () => {
+        try {
+          const { data: { user } } = await supabase.auth.getUser();
+          if (!user) throw new Error('User not authenticated');
+          
+          for (let i = 0; i < reorderedTasks.length; i++) {
+            const task = reorderedTasks[i];
+            await supabase
+              .from('tasks')
+              .update({ 
+                position: i + 1,
+                updated_at: new Date().toISOString()
+              })
+              .eq('id', task.id)
+              .eq('user_id', user.id);
+          }
+          
+          console.log('🎉 TaskView positions synced to database');
+        } catch (error) {
+          console.error('💥 TaskView database sync failed:', error);
+          // On error, refetch to restore correct state
+          await fetchTasks();
         }
-        
-        console.log('🎉 Task positions saved to database');
-        
-        // Refetch tasks to update UI with new positions
-        await fetchTasks();
-        
-      } catch (error) {
-        console.error('💥 Task reorder failed:', error);
-        // On error, refetch to restore correct state
-        await fetchTasks();
-      }
+      }, 0);
     }
   };
 

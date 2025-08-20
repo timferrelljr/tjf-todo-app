@@ -30,31 +30,34 @@ export function CategoryTasksView({ category, onBack, theme = 'light' }: Categor
 
   const handleTaskReorder = async (reorderedTasks: any[]) => {
     if (reorderedTasks.length > 0) {
-      console.log('🔄 Reorder for category:', category.name, reorderedTasks.length);
+      console.log('🔄 Category reorder:', category.name, reorderedTasks.length);
       
-      try {
-        // Update database positions without triggering state updates
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) throw new Error('User not authenticated');
-        
-        for (let i = 0; i < reorderedTasks.length; i++) {
-          const task = reorderedTasks[i];
-          await supabase
-            .from('tasks')
-            .update({ 
-              position: i + 1,
-              updated_at: new Date().toISOString()
-            })
-            .eq('id', task.id)
-            .eq('user_id', user.id);
+      // Drag and drop library handles optimistic updates
+      // Sync to database in background
+      setTimeout(async () => {
+        try {
+          const { data: { user } } = await supabase.auth.getUser();
+          if (!user) throw new Error('User not authenticated');
+          
+          for (let i = 0; i < reorderedTasks.length; i++) {
+            const task = reorderedTasks[i];
+            await supabase
+              .from('tasks')
+              .update({ 
+                position: i + 1,
+                updated_at: new Date().toISOString()
+              })
+              .eq('id', task.id)
+              .eq('user_id', user.id);
+          }
+          
+          console.log('🎉 Category task positions synced to database');
+        } catch (error) {
+          console.error('💥 Category database sync failed:', error);
+          // On error, could refetch, but for now just log
+          console.log('Consider refreshing page if task order seems incorrect');
         }
-        
-        console.log('🎉 Category task positions saved to database');
-      } catch (error) {
-        console.error('💥 Category task reorder failed:', error);
-        // On error, refetch to restore correct state
-        window.location.reload();
-      }
+      }, 0);
     }
   };
 

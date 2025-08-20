@@ -59,31 +59,41 @@ export function Dashboard() {
     if (reorderedTasks.length > 0) {
       console.log('🔄 Dashboard task reorder, count:', reorderedTasks.length);
       
-      try {
-        // Update database positions
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) throw new Error('User not authenticated');
-        
-        for (let i = 0; i < reorderedTasks.length; i++) {
-          const task = reorderedTasks[i];
-          await supabase
-            .from('tasks')
-            .update({ 
-              position: i + 1,
-              updated_at: new Date().toISOString()
-            })
-            .eq('id', task.id)
-            .eq('user_id', user.id);
+      // 1. Immediate optimistic UI update
+      const tasksWithNewPositions = reorderedTasks.map((task, index) => ({
+        ...task,
+        position: index + 1,
+        updated_at: new Date().toISOString(),
+      }));
+      
+      // Update UI immediately for smooth UX
+      dispatch({ type: 'SET_TASKS', payload: tasksWithNewPositions });
+      
+      // 2. Background database sync (don't await this to avoid UI delays)
+      setTimeout(async () => {
+        try {
+          const { data: { user } } = await supabase.auth.getUser();
+          if (!user) throw new Error('User not authenticated');
+          
+          for (let i = 0; i < reorderedTasks.length; i++) {
+            const task = reorderedTasks[i];
+            await supabase
+              .from('tasks')
+              .update({ 
+                position: i + 1,
+                updated_at: new Date().toISOString()
+              })
+              .eq('id', task.id)
+              .eq('user_id', user.id);
+          }
+          
+          console.log('🎉 Dashboard task positions synced to database');
+        } catch (error) {
+          console.error('💥 Database sync failed, reverting:', error);
+          // On error, refetch to restore correct state
+          await fetchTasks();
         }
-        
-        console.log('🎉 Dashboard task positions saved to database');
-        
-        // Refetch tasks to update UI
-        await fetchTasks();
-        
-      } catch (error) {
-        console.error('💥 Dashboard task reorder failed:', error);
-      }
+      }, 0);
     }
   };
 
