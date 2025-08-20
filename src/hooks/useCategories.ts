@@ -72,6 +72,24 @@ export function useCategories() {
       // Delete each category individually with proper user authentication
       for (const cat of defaultCats) {
         console.log(`🗑️ Deleting category: ${cat.name} (ID: ${cat.id}, user: ${cat.user_id})`);
+        console.log(`👤 Current user: ${user.id}, Category user: ${cat.user_id}`);
+        
+        if (cat.user_id !== user.id) {
+          console.log(`🔧 User ID mismatch! Updating category ownership first...`);
+          
+          // First, update the user_id to match current user
+          const { error: updateError } = await supabase
+            .from('categories')
+            .update({ user_id: user.id })
+            .eq('id', cat.id);
+          
+          if (updateError) {
+            console.error(`❌ Failed to update ownership for ${cat.name}:`, updateError);
+            continue;
+          }
+          
+          console.log(`✅ Updated ownership for ${cat.name} to current user`);
+        }
         
         // First delete all tasks in this category
         const { error: tasksError } = await supabase
