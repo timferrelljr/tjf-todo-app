@@ -39,6 +39,7 @@ export function useCategories() {
   const [loading, setLoading] = useState(false);
 
   const fetchCategories = useCallback(async () => {
+    console.log('🔍 fetchCategories called in production mode');
     setLoading(true);
     dispatch({ type: 'SET_ERROR', payload: null });
 
@@ -47,6 +48,8 @@ export function useCategories() {
         .from('categories')
         .select('*')
         .order('position', { ascending: true });
+      
+      console.log('📊 Categories fetched from database:', data);
 
       if (error) throw error;
       dispatch({ type: 'SET_CATEGORIES', payload: data || [] });

@@ -17,6 +17,9 @@ export function Dashboard() {
   const { state, dispatch } = useApp();
   const { signOut } = useAuth();
   const { fetchCategories, categories } = useCategories();
+  
+  // Debug logging for categories
+  console.log('🏠 Dashboard render - categories:', categories.map(c => c.name));
   const { fetchTasks, tasks, createTask } = useTasks();
   const [showAddTask, setShowAddTask] = useState(false);
   
