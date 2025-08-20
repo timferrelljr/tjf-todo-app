@@ -56,6 +56,7 @@ export interface CreateTaskData {
 
 export interface UpdateTaskData extends Partial<CreateTaskData> {
   id: string;
+  position?: number;
 }
 
 export interface CreateCategoryData {

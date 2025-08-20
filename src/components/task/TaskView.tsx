@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useCategories } from '../../hooks/useCategories';
 import { useTasks } from '../../hooks/useTasks';
-import { useApp } from '../../stores/AppContext';
 import { DraggableCategoryGrid } from '../category/DraggableCategoryGrid';
 import { CategoryTasksView } from '../category/CategoryTasksView';
 import { AddTaskInput } from './AddTaskInput';
@@ -17,7 +16,6 @@ interface TaskViewProps {
 export function TaskView({ theme = 'light' }: TaskViewProps) {
   const { categories } = useCategories();
   const { tasks, updateTask } = useTasks();
-  const { dispatch } = useApp();
   const [selectedCategory, setSelectedCategory] = useState<any>(null); // TODO: Fix TypeScript issue
   const [showDetailedForm, setShowDetailedForm] = useState<boolean>(false);
   const [showAllTasks, setShowAllTasks] = useState<boolean>(false);

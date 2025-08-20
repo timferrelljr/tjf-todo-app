@@ -18,7 +18,7 @@ interface CategoryTasksViewProps {
 export function CategoryTasksView({ category, onBack, theme = 'light' }: CategoryTasksViewProps) {
   const { getTasksByCategory, updateTask } = useTasks();
   const { categories } = useCategories();
-  const { dispatch, tasks: allTasks } = useApp();
+  const { tasks: allTasks } = useApp();
   const [showTaskForm, setShowTaskForm] = useState(false);
   
   const tasks = getTasksByCategory(category.id).filter(t => t.status !== 'Complete');
