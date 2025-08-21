@@ -45,7 +45,7 @@ export function AuthView() {
       <Card className="w-full max-w-md p-8">
         <div className="text-center mb-8">
           <img 
-            src="/hibilist-logo.svg" 
+            src="/hibilist-logo.png" 
             alt="Hibilist - Mindful Productivity" 
             className="h-20 w-auto mb-4 mx-auto"
           />

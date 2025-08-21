@@ -355,7 +355,7 @@ export function Dashboard() {
         <header className="flex flex-col sm:flex-row justify-between items-center mb-8 sm:mb-12 space-y-4 sm:space-y-0">
           <div className="text-center sm:text-left">
             <img 
-              src="/hibilist-logo.svg" 
+              src="/hibilist-logo.png" 
               alt="Hibilist - Mindful Productivity" 
               className="h-16 sm:h-20 w-auto mb-2 mx-auto sm:mx-0"
             />
