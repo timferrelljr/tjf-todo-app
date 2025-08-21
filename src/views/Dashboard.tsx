@@ -357,7 +357,7 @@ export function Dashboard() {
             <img 
               src="/hibilist-logo.png" 
               alt="Hibilist - Mindful Productivity" 
-              className="h-16 sm:h-20 w-auto mb-2 mx-auto sm:mx-0"
+              className="h-32 sm:h-40 w-auto mb-2 mx-auto sm:mx-0"
             />
             {isMockMode() && (
               <div className={`mt-2 text-xs transition-colors ${

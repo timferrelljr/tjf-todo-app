@@ -47,7 +47,7 @@ export function AuthView() {
           <img 
             src="/hibilist-logo.png" 
             alt="Hibilist - Mindful Productivity" 
-            className="h-20 w-auto mb-4 mx-auto"
+            className="h-80 w-auto mb-4 mx-auto"
           />
           <p className="text-sm text-gray-600">
             {isMockMode() ? 'Demo Mode - Any credentials will work!' : (isSignUp ? 'Create your account' : 'Welcome back')}
