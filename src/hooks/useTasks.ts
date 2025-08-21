@@ -60,9 +60,16 @@ export function useTasks() {
     dispatch({ type: 'SET_ERROR', payload: null });
 
     try {
+      // Get current user to ensure proper isolation
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+
       const { data, error } = await supabase
         .from('tasks')
         .select('*')
+        .eq('user_id', user.id)
         .order('position', { ascending: true });
 
       if (error) throw error;
