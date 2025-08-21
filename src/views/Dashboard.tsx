@@ -354,12 +354,11 @@ export function Dashboard() {
         {/* Mobile-responsive Header */}
         <header className="flex flex-col sm:flex-row justify-between items-center mb-8 sm:mb-12 space-y-4 sm:space-y-0">
           <div className="text-center sm:text-left">
-            <h1 className={`text-2xl sm:text-3xl font-light mb-2 transition-colors ${
-              theme === 'dark' ? 'text-white' : 'text-gray-900'
-            }`}>HibiList</h1>
-            <p className={`font-light transition-colors ${
-              theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
-            }`}>Mindful Productivity</p>
+            <img 
+              src="/hibilist-logo.svg" 
+              alt="Hibilist - Mindful Productivity" 
+              className="h-16 sm:h-20 w-auto mb-2 mx-auto sm:mx-0"
+            />
             {isMockMode() && (
               <div className={`mt-2 text-xs transition-colors ${
                 theme === 'dark' ? 'text-gray-500' : 'text-gray-400'

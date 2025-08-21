@@ -44,8 +44,11 @@ export function AuthView() {
     <div className="flex min-h-screen items-center justify-center p-6 bg-white">
       <Card className="w-full max-w-md p-8">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-light text-gray-900 mb-2">Hibilist</h1>
-          <p className="text-lg font-light text-gray-600 mb-4">Mindful Productivity</p>
+          <img 
+            src="/hibilist-logo.svg" 
+            alt="Hibilist - Mindful Productivity" 
+            className="h-20 w-auto mb-4 mx-auto"
+          />
           <p className="text-sm text-gray-600">
             {isMockMode() ? 'Demo Mode - Any credentials will work!' : (isSignUp ? 'Create your account' : 'Welcome back')}
           </p>
